@@ -1,1 +1,661 @@
-Test
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IP Strategy Finder</title>
+  <!-- React and ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.development.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.min.js"></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    
+    /* IP Australia theme colors */
+    :root {
+      --dark-blue: #2C3E50;
+      --teal: #3498DB;
+      --light-mint: #F8FAFC;
+    }
+    
+    /* Header */
+    .header {
+      background-color: var(--dark-blue);
+      color: white;
+      padding: 1rem;
+    }
+    
+    /* Footer */
+    .footer {
+      background-color: var(--dark-blue);
+      color: white;
+      padding: 1rem;
+      margin-top: 2rem;
+    }
+    
+    /* Content */
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    
+    /* Question area */
+    .question-area {
+      background-color: var(--light-mint);
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+    
+    /* Teal elements */
+    .teal-text {
+      color: var(--teal);
+    }
+    
+    .teal-bg {
+      background-color: var(--teal);
+    }
+    
+    .teal-border {
+      border-color: var(--teal);
+    }
+    
+    /* Range slider styling */
+    input[type="range"] {
+      accent-color: var(--teal);
+    }
+    
+    /* Checkbox styling */
+    input[type="checkbox"] {
+      accent-color: var(--teal);
+    }
+  </style>
+</head>
+<body>
+  <!-- Simple header -->
+  <header class="header">
+    <div class="content flex justify-between items-center">
+      <div class="flex items-center">
+        <span class="font-bold text-xl">IP Strategy Finder</span>
+      </div>
+      <nav class="hidden md:block">
+        <ul class="flex space-x-6">
+          <li><a href="#" class="text-white hover:text-gray-300">Home</a></li>
+          <li><a href="#" class="text-white hover:text-gray-300">About</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div id="root" class="content my-4"></div>
+
+  <!-- Simple footer -->
+  <footer class="footer">
+    <div class="content">
+      <p class="text-center text-sm">&copy; 2025 IP Strategy Finder</p>
+    </div>
+  </footer>
+  
+  <!-- React Component -->
+  <script type="text/babel">
+    const IPStrategyFinder = () => {
+      // State for our data
+      const [booleanQuestions, setBooleanQuestions] = React.useState([]);
+      const [spectrumQuestions, setSpectrumQuestions] = React.useState([]);
+      const [strategies, setStrategies] = React.useState([]);
+      const [checkboxSelections, setCheckboxSelections] = React.useState({});
+      const [sliderValues, setSliderValues] = React.useState({});
+      const [rankedStrategies, setRankedStrategies] = React.useState([]);
+      const [loading, setLoading] = React.useState(true);
+
+      // Define which questions are boolean and which are spectrum
+      const questionTypes = {
+        boolean: [
+          "For trade marks registered with IP Australia",
+          "Utilise an IP attorney",
+          "Applicable against an infringing parties",
+          "Applicable to online marketplaces"
+        ],
+        spectrum: [
+          "Prefered time commitment to IP strategy",
+          "Prefered investment in IP strategy",
+          "Prefered interest in commercial agreements",
+          "Openess to engagging 3rd party services"
+        ]
+      };
+
+      // IP Strategies Data
+      const IPStrategyData = {
+        strategies: [
+          {
+            name: "Audits of IP Rights",
+            description: "Check how strong and enforceable your trade mark is",
+            scores: {
+              "For trade marks registered with IP Australia": 5,
+              "Utilise an IP attorney": 2,
+              "Applicable against an infringing parties": 9,
+              "Applicable to online marketplaces": 5,
+              "Prefered time commitment to IP strategy": 9,
+              "Prefered investment in IP strategy": 2,
+              "Prefered interest in commercial agreements": 2,
+              "Openess to engagging 3rd party services": 2
+            }
+          },
+          {
+            name: "Register your IP",
+            description: "Apply to register your trade mark with IP Australia",
+            scores: {
+              "For trade marks registered with IP Australia": 0,
+              "Utilise an IP attorney": 5,
+              "Applicable against an infringing parties": 9,
+              "Applicable to online marketplaces": 9,
+              "Prefered time commitment to IP strategy": 5,
+              "Prefered investment in IP strategy": 5,
+              "Prefered interest in commercial agreements": 5,
+              "Openess to engagging 3rd party services": 5
+            }
+          },
+          {
+            name: "License your IP",
+            description: "Let others use your trade mark under agreed terms",
+            scores: {
+              "For trade marks registered with IP Australia": 2,
+              "Utilise an IP attorney": 8,
+              "Applicable against an infringing parties": 9,
+              "Applicable to online marketplaces": 3,
+              "Prefered time commitment to IP strategy": 5,
+              "Prefered investment in IP strategy": 6,
+              "Prefered interest in commercial agreements": 10,
+              "Openess to engagging 3rd party services": 5
+            }
+          },
+          {
+            name: "IP Insurance",
+            description: "Get insurance for legal costs from trade mark disputes",
+            scores: {
+              "For trade marks registered with IP Australia": 1,
+              "Utilise an IP attorney": 5,
+              "Applicable against an infringing parties": 8,
+              "Applicable to online marketplaces": 5,
+              "Prefered time commitment to IP strategy": 7,
+              "Prefered investment in IP strategy": 9,
+              "Prefered interest in commercial agreements": 5,
+              "Openess to engagging 3rd party services": 9
+            }
+          },
+          {
+            name: "Know the Rules",
+            description: "Learn the laws that protect your trade mark",
+            scores: {
+              "For trade marks registered with IP Australia": 4,
+              "Utilise an IP attorney": 1,
+              "Applicable against an infringing parties": 6,
+              "Applicable to online marketplaces": 5,
+              "Prefered time commitment to IP strategy": 1,
+              "Prefered investment in IP strategy": 2,
+              "Prefered interest in commercial agreements": 7,
+              "Openess to engagging 3rd party services": 2
+            }
+          },
+          {
+            name: "IP Monitoring service",
+            description: "Get alerts for similar trade marks filed by others",
+            scores: {
+              "For trade marks registered with IP Australia": 3,
+              "Utilise an IP attorney": 5,
+              "Applicable against an infringing parties": 8,
+              "Applicable to online marketplaces": 6,
+              "Prefered time commitment to IP strategy": 1,
+              "Prefered investment in IP strategy": 10,
+              "Prefered interest in commercial agreements": 5,
+              "Openess to engagging 3rd party services": 10
+            }
+          },
+          {
+            name: "Hire-inhouse IP manager",
+            description: "Hire someone to manage your business's IP",
+            scores: {
+              "For trade marks registered with IP Australia": 2,
+              "Utilise an IP attorney": 10,
+              "Applicable against an infringing parties": 5,
+              "Applicable to online marketplaces": 2,
+              "Prefered time commitment to IP strategy": 1,
+              "Prefered investment in IP strategy": 10,
+              "Prefered interest in commercial agreements": 7,
+              "Openess to engagging 3rd party services": 1
+            }
+          },
+          {
+            name: "Customer education",
+            description: "Help customers recognise and prefer your brand",
+            scores: {
+              "For trade marks registered with IP Australia": 5,
+              "Utilise an IP attorney": 5,
+              "Applicable against an infringing parties": 5,
+              "Applicable to online marketplaces": 5,
+              "Prefered time commitment to IP strategy": 7,
+              "Prefered investment in IP strategy": 2,
+              "Prefered interest in commercial agreements": 5,
+              "Openess to engagging 3rd party services": 1
+            }
+          },
+          {
+            name: "Monitor supply chains",
+            description: "Track suppliers to guard against trade mark misuse",
+            scores: {
+              "For trade marks registered with IP Australia": 5,
+              "Utilise an IP attorney": 5,
+              "Applicable against an infringing parties": 5,
+              "Applicable to online marketplaces": 5,
+              "Prefered time commitment to IP strategy": 9,
+              "Prefered investment in IP strategy": 2,
+              "Prefered interest in commercial agreements": 5,
+              "Openess to engagging 3rd party services": 1
+            }
+          },
+          {
+            name: "Offensive actions",
+            description: "Plan steps to stop trade mark misuse, including legal action",
+            scores: {
+              "For trade marks registered with IP Australia": 5,
+              "Utilise an IP attorney": 10,
+              "Applicable against an infringing parties": 10,
+              "Applicable to online marketplaces": 5,
+              "Prefered time commitment to IP strategy": 3,
+              "Prefered investment in IP strategy": 9,
+              "Prefered interest in commercial agreements": 5,
+              "Openess to engagging 3rd party services": 6
+            }
+          },
+          {
+            name: "Defensive actions",
+            description: "Set up ways to protect IP without going to court",
+            scores: {
+              "For trade marks registered with IP Australia": 5,
+              "Utilise an IP attorney": 5,
+              "Applicable against an infringing parties": 1,
+              "Applicable to online marketplaces": 5,
+              "Prefered time commitment to IP strategy": 7,
+              "Prefered investment in IP strategy": 2,
+              "Prefered interest in commercial agreements": 8,
+              "Openess to engagging 3rd party services": 1
+            }
+          },
+          {
+            name: "Using your IP",
+            description: "Make sure your trade mark is used in the market",
+            scores: {
+              "For trade marks registered with IP Australia": 8,
+              "Utilise an IP attorney": 5,
+              "Applicable against an infringing parties": 10,
+              "Applicable to online marketplaces": 8,
+              "Prefered time commitment to IP strategy": 5,
+              "Prefered investment in IP strategy": 5,
+              "Prefered interest in commercial agreements": 5,
+              "Openess to engagging 3rd party services": 1
+            }
+          },
+          {
+            name: "Brand protection platforms",
+            description: "Use tools like Amazon Brand Registry to boost protection",
+            scores: {
+              "For trade marks registered with IP Australia": 2,
+              "Utilise an IP attorney": 5,
+              "Applicable against an infringing parties": 5,
+              "Applicable to online marketplaces": 10,
+              "Prefered time commitment to IP strategy": 5,
+              "Prefered investment in IP strategy": 5,
+              "Prefered interest in commercial agreements": 5,
+              "Openess to engagging 3rd party services": 5
+            }
+          },
+          {
+            name: "Predict expected infringement",
+            description: "Spot likely infringement areas to build a response plan",
+            scores: {
+              "For trade marks registered with IP Australia": 5,
+              "Utilise an IP attorney": 5,
+              "Applicable against an infringing parties": 5,
+              "Applicable to online marketplaces": 5,
+              "Prefered time commitment to IP strategy": 9,
+              "Prefered investment in IP strategy": 1,
+              "Prefered interest in commercial agreements": 6,
+              "Openess to engagging 3rd party services": 2
+            }
+          },
+          {
+            name: "Monitor the trade mark registers",
+            description: "Get alerts for similar trade marks others try to register",
+            scores: {
+              "For trade marks registered with IP Australia": 8,
+              "Utilise an IP attorney": 2,
+              "Applicable against an infringing parties": 1,
+              "Applicable to online marketplaces": 5,
+              "Prefered time commitment to IP strategy": 2,
+              "Prefered investment in IP strategy": 1,
+              "Prefered interest in commercial agreements": 4,
+              "Openess to engagging 3rd party services": 3
+            }
+          }
+        ]
+      };
+
+      // Initialize data on component mount
+      React.useEffect(() => {
+        // Set questions by type
+        setBooleanQuestions(questionTypes.boolean);
+        setSpectrumQuestions(questionTypes.spectrum);
+        
+        // Initialize checkbox selections to all false (unchecked)
+        const initialCheckboxes = {};
+        questionTypes.boolean.forEach(question => {
+          initialCheckboxes[question] = false;
+        });
+        
+        // Initialize slider values to neutral (0)
+        const initialSliders = {};
+        questionTypes.spectrum.forEach(question => {
+          initialSliders[question] = 0;
+        });
+        
+        setStrategies(IPStrategyData.strategies);
+        setCheckboxSelections(initialCheckboxes);
+        setSliderValues(initialSliders);
+        setLoading(false);
+      }, []);
+
+      // Calculate Strategy rankings whenever selections or slider values change
+      React.useEffect(() => {
+        if (loading) return;
+        
+        const rankStrategies = () => {
+          // Get selected checkbox questions
+          const selectedBooleanQuestions = booleanQuestions.filter(q => checkboxSelections[q]);
+          
+          // Get non-zero slider questions
+          const activeSpectrumQuestions = spectrumQuestions.filter(q => sliderValues[q] !== 0);
+          
+          // If no selections (checkboxes or sliders), all strategies are shown with zero score
+          if (selectedBooleanQuestions.length === 0 && activeSpectrumQuestions.length === 0) {
+            return strategies.map(strategy => ({
+              ...strategy,
+              score: 0,
+              booleanMatches: [],
+              booleanNonMatches: [],
+              spectrumMatches: [],
+              spectrumNonMatches: []
+            }));
+          }
+          
+          const ranked = strategies.map(strategy => {
+            // Track boolean matches/non-matches
+            const booleanMatches = [];
+            const booleanNonMatches = [];
+            let booleanScore = 0;
+            
+            // For each selected checkbox question, check if strategy scores > 5 (median score)
+            selectedBooleanQuestions.forEach(question => {
+              if ((strategy.scores[question] || 0) > 5) {
+                booleanMatches.push(question);
+                booleanScore++;
+              } else {
+                booleanNonMatches.push(question);
+              }
+            });
+            
+            // Calculate boolean match percentage
+            const booleanPercentage = selectedBooleanQuestions.length > 0 
+              ? (booleanScore / selectedBooleanQuestions.length) * 100 
+              : 100; // 100% if no boolean questions selected
+            
+            // Track spectrum matches/non-matches
+            const spectrumMatches = [];
+            const spectrumNonMatches = [];
+            let spectrumScore = 0;
+            let spectrumPossibleScore = 0;
+            
+            // Calculate spectrum match score
+            activeSpectrumQuestions.forEach(question => {
+              const strategyValue = strategy.scores[question] || 0;
+              const preferenceValue = sliderValues[question];
+              
+              // Convert preference (-3 to 3) to expected score (0 to 10)
+              const expectedValue = (preferenceValue > 0) 
+                ? (preferenceValue / 3) * 10  // Map 1-3 to 3.33-10
+                : 0;  // Negative values mean user doesn't want this
+              
+              // Calculate match (higher when strategy matches expected value)
+              const match = (preferenceValue > 0)
+                ? Math.max(0, 10 - Math.abs(expectedValue - strategyValue))
+                : Math.max(0, 10 - strategyValue);  // Reward low scores for negative preferences
+              
+              // Track if this is a good match
+              const isGoodMatch = match > 5;
+              
+              if (isGoodMatch) {
+                spectrumMatches.push(question);
+              } else {
+                spectrumNonMatches.push(question);
+              }
+              
+              // Weight by strength of preference
+              const weight = Math.abs(preferenceValue) / 3;
+              spectrumScore += match * weight;
+              spectrumPossibleScore += 10 * weight; // Max possible match is 10
+            });
+            
+            // Calculate spectrum match percentage
+            const spectrumPercentage = spectrumPossibleScore > 0 
+              ? (spectrumScore / spectrumPossibleScore) * 100 
+              : 100; // 100% if no spectrum questions active
+            
+            // Combine boolean and spectrum scores with equal weight
+            const combinedScore = (booleanPercentage + spectrumPercentage) / 2;
+            
+            return {
+              ...strategy,
+              score: combinedScore,
+              booleanMatches,
+              booleanNonMatches,
+              spectrumMatches,
+              spectrumNonMatches
+            };
+          });
+          
+          // Sort by score (descending)
+          return ranked.sort((a, b) => b.score - a.score);
+        };
+        
+        setRankedStrategies(rankStrategies());
+      }, [checkboxSelections, sliderValues, booleanQuestions, spectrumQuestions, strategies, loading]);
+
+      // Toggle a checkbox selection
+      const toggleSelection = (question) => {
+        setCheckboxSelections({
+          ...checkboxSelections,
+          [question]: !checkboxSelections[question]
+        });
+      };
+      
+      // Update a slider value
+      const updateSliderValue = (question, value) => {
+        setSliderValues({
+          ...sliderValues,
+          [question]: value
+        });
+      };
+
+      // Return loading screen if data not ready
+      if (loading) {
+        return <div className="flex items-center justify-center p-10">Loading...</div>;
+      }
+
+      // Sort boolean questions to put selected ones at the top
+      const sortedBooleanQuestions = [...booleanQuestions].sort((a, b) => {
+        if (checkboxSelections[a] && !checkboxSelections[b]) return -1;
+        if (!checkboxSelections[a] && checkboxSelections[b]) return 1;
+        return 0;
+      });
+
+      // Helper function to get the preference text label for sliders
+      const getPreferenceLabel = (value) => {
+        if (value === 0) return "No preference";
+        if (value > 0) {
+          return value < 2 ? "Slight preference" : value === 2 ? "Strongly preferred" : "Definitely preferred";
+        } else {
+          return value > -2 ? "Not preferred" : value === -2 ? "Strongly not preferred" : "Definitely not preferred";
+        }
+      };
+
+      return (
+        <div>
+          <h1 className="text-3xl font-bold mb-4 teal-text">IP Strategy Finder</h1>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left column - preferences */}
+            <div className="space-y-6">
+              {/* Boolean Questions (Checkboxes) */}
+              <div className="bg-white p-4 rounded shadow-sm">
+                <h2 className="text-xl font-semibold mb-4 teal-text">Required features</h2>
+                
+                <div className="question-area">
+                  {sortedBooleanQuestions.map((question, index) => (
+                    <div 
+                      key={index} 
+                      className={`p-2 rounded mb-2 ${checkboxSelections[question] ? 'bg-white' : ''}`}
+                    >
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={checkboxSelections[question]}
+                          onChange={() => toggleSelection(question)}
+                          className="w-4 h-4"
+                        />
+                        <span className="ml-2 text-gray-800">
+                          {question}
+                        </span>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Spectrum Questions (Sliders) */}
+              <div className="bg-white p-4 rounded shadow-sm">
+                <h2 className="text-xl font-semibold mb-4 teal-text">Your preferences</h2>
+                
+                <div className="question-area">
+                  {spectrumQuestions.map((question, index) => (
+                    <div key={index} className="mb-6">
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="font-medium">{question}</label>
+                        <span className="text-sm px-2 py-1 rounded-full bg-gray-100">
+                          {getPreferenceLabel(sliderValues[question])}
+                        </span>
+                      </div>
+                      
+                      <div className="relative">
+                        <div className="w-full flex justify-between text-xs text-gray-500 mb-1">
+                          <span>Not preferred</span>
+                          <span>No preference</span>
+                          <span>Preferred</span>
+                        </div>
+                        
+                        <input
+                          type="range"
+                          min="-3"
+                          max="3"
+                          step="1"
+                          value={sliderValues[question]}
+                          onChange={(e) => updateSliderValue(question, parseInt(e.target.value))}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Right column - results */}
+            <div>
+              <div className="bg-white p-4 rounded shadow-sm">
+                <h2 className="text-xl font-semibold mb-4 teal-text">IP Strategies to consider</h2>
+                
+                <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                  {rankedStrategies.filter(strategy => strategy.score > 0).map((strategy, index) => (
+                    <div 
+                      key={index} 
+                      className="p-3 border rounded"
+                      style={{ borderLeftWidth: '4px', borderLeftColor: '#3498DB' }}
+                    >
+                      <div>
+                        <h3 className="font-semibold">{strategy.name}</h3>
+                      </div>
+                      
+                      <p className="text-sm text-gray-600 mb-2">{strategy.description}</p>
+                      
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                        <div 
+                          className="teal-bg h-2 rounded-full" 
+                          style={{ width: `${Math.min(100, Math.round(strategy.score))}%` }}
+                        ></div>
+                      </div>
+                      
+                      <div className="text-xs space-y-1">
+                        {/* Boolean matches */}
+                        {strategy.booleanMatches.length > 0 && (
+                          <div>
+                            <span className="font-medium text-green-600">Suitable for:</span>
+                            <span className="ml-1 text-green-600">{strategy.booleanMatches.join(', ')}</span>
+                          </div>
+                        )}
+                        
+                        {/* Boolean non-matches */}
+                        {strategy.booleanNonMatches.length > 0 && checkboxSelections[strategy.booleanNonMatches[0]] && (
+                          <div>
+                            <span className="font-medium text-red-500">Less suitable for:</span>
+                            <span className="ml-1 text-red-500">
+                              {strategy.booleanNonMatches
+                                .filter(q => checkboxSelections[q])
+                                .join(', ')}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Spectrum matches */}
+                        {strategy.spectrumMatches.length > 0 && (
+                          <div>
+                            <span className="font-medium teal-text">Aligns with your preferences for:</span>
+                            <span className="ml-1 teal-text">{strategy.spectrumMatches.join(', ')}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {rankedStrategies.filter(strategy => strategy.score > 0).length === 0 && (
+                    <div className="text-center p-6 question-area">
+                      Select features and preferences to view potential IP strategies.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Render the component - using the older style React render method for compatibility
+    ReactDOM.render(<IPStrategyFinder />, document.getElementById('root'));
+  </script>
+</body>
+</html>
