@@ -359,10 +359,10 @@
           initialCheckboxes[question] = false;
         });
         
-        // Initialize slider values to minimum values
+        // Initialize slider values to neutral (0)
         const initialSliders = {};
         questionTypes.spectrum.forEach(question => {
-          initialSliders[question] = sliderConfig[question].min || 0;
+          initialSliders[question] = 0;
         });
         
         setStrategies(IPStrategyData.strategies);
@@ -379,11 +379,8 @@
           // Get selected checkbox questions
           const selectedBooleanQuestions = booleanQuestions.filter(q => checkboxSelections[q]);
           
-          // Get slider questions with values above minimum
-          const activeSpectrumQuestions = spectrumQuestions.filter(q => {
-            const minValue = sliderConfig[q] ? sliderConfig[q].min : 0;
-            return sliderValues[q] > minValue;
-          });
+          // Get non-zero slider questions
+          const activeSpectrumQuestions = spectrumQuestions.filter(q => sliderValues[q] !== 0);
           
           // If no selections (checkboxes or sliders), all strategies are shown with zero score
           if (selectedBooleanQuestions.length === 0 && activeSpectrumQuestions.length === 0) {
@@ -429,18 +426,15 @@
               const strategyValue = strategy.scores[question] || 0;
               const preferenceValue = sliderValues[question];
               
-              // Get the slider configuration
-              const config = sliderConfig[question];
-              
-              // Convert slider value to expected score (0 to 10)
-              // Map the preference value (which is now within the custom range)
-              // to a value between 0 and 10 for scoring
-              const expectedValue = config ? 
-                (preferenceValue / config.max) * 10 : 0;
+              // Convert preference (-3 to 3) to expected score (0 to 10)
+              const expectedValue = (preferenceValue > 0) 
+                ? (preferenceValue / 3) * 10  // Map 1-3 to 3.33-10
+                : 0;  // Negative values mean user doesn't want this
               
               // Calculate match (higher when strategy matches expected value)
-              // High preference values should match with high strategy values
-              const match = Math.max(0, 10 - Math.abs(expectedValue - strategyValue));
+              const match = (preferenceValue > 0)
+                ? Math.max(0, 10 - Math.abs(expectedValue - strategyValue))
+                : Math.max(0, 10 - strategyValue);  // Reward low scores for negative preferences
               
               // Track if this is a good match
               const isGoodMatch = match > 5;
@@ -451,10 +445,8 @@
                 spectrumNonMatches.push(question);
               }
               
-              // Weight by normalized preference strength (how far it is from minimum)
-              const weight = config ? 
-                preferenceValue / config.max : 
-                0.5; // default weight if config not found
+              // Weight by strength of preference
+              const weight = Math.abs(preferenceValue) / 3;
               spectrumScore += match * weight;
               spectrumPossibleScore += 10 * weight; // Max possible match is 10
             });
@@ -512,37 +504,14 @@
         return 0;
       });
 
-      // Custom slider configurations for each question
-      const sliderConfig = {
-        "Prefered time commitment to IP strategy": {
-          min: 0,
-          max: 3,
-          labels: ["Minimal effort", "Some effort", "Medium effort", "Significant effort"]
-        },
-        "Prefered investment in IP strategy": {
-          min: 0,
-          max: 4,
-          labels: ["No budget", "Small budget", "Medium budget", "Large budget", "Very large budget"]
-        },
-        "Prefered interest in commercial agreements": {
-          min: 0,
-          max: 2,
-          labels: ["Not interested", "Somewhat interested", "Very interested"]
-        },
-        "Openess to engagging 3rd party services": {
-          min: 0,
-          max: 3,
-          labels: ["Internal only", "Limited external help", "Mix of internal/external", "Primarily external"]
-        }
-      };
-      
       // Helper function to get the preference text label for sliders
-      const getPreferenceLabel = (question, value) => {
-        const config = sliderConfig[question];
-        if (!config) return "No preference";
-        
-        // Return the appropriate label based on the value
-        return config.labels[value] || "No preference";
+      const getPreferenceLabel = (value) => {
+        if (value === 0) return "No preference";
+        if (value > 0) {
+          return value < 2 ? "Slight preference" : value === 2 ? "Strongly preferred" : "Definitely preferred";
+        } else {
+          return value > -2 ? "Not preferred" : value === -2 ? "Strongly not preferred" : "Definitely not preferred";
+        }
       };
 
       return (
@@ -588,23 +557,21 @@
                       <div className="flex justify-between items-center mb-2">
                         <label className="font-medium">{question}</label>
                         <span className="text-sm px-2 py-1 rounded-full bg-gray-100">
-                          {getPreferenceLabel(question, sliderValues[question])}
+                          {getPreferenceLabel(sliderValues[question])}
                         </span>
                       </div>
                       
                       <div className="relative">
                         <div className="w-full flex justify-between text-xs text-gray-500 mb-1">
-                          {sliderConfig[question].labels.map((label, i) => (
-                            <span key={i} className="text-center" style={{width: `${100/sliderConfig[question].labels.length}%`}}>
-                              {label}
-                            </span>
-                          ))}
+                          <span>Not preferred</span>
+                          <span>No preference</span>
+                          <span>Preferred</span>
                         </div>
                         
                         <input
                           type="range"
-                          min={sliderConfig[question].min}
-                          max={sliderConfig[question].max}
+                          min="-3"
+                          max="3"
                           step="1"
                           value={sliderValues[question]}
                           onChange={(e) => updateSliderValue(question, parseInt(e.target.value))}
