@@ -124,10 +124,10 @@
           "Applicable to online marketplaces"
         ],
         spectrum: [
-          "Prefered time commitment to IP strategy",
-          "Prefered investment in IP strategy",
-          "Prefered interest in commercial agreements",
-          "Openess to engagging 3rd party services"
+          "Preferred time commitment to IP strategy",
+          "Preferred investment in IP strategy",
+          "Preferred interest in commercial agreements",
+          "Openness to engaging 3rd party services"
         ]
       };
 
@@ -394,6 +394,17 @@
             }));
           }
           
+          // Map old question keys to new corrected ones
+          const mapQuestionKey = (oldKey) => {
+            const mapping = {
+              "Prefered time commitment to IP strategy": "Preferred time commitment to IP strategy",
+              "Prefered investment in IP strategy": "Preferred investment in IP strategy",
+              "Prefered interest in commercial agreements": "Preferred interest in commercial agreements",
+              "Openess to engagging 3rd party services": "Openness to engaging 3rd party services"
+            };
+            return mapping[oldKey] || oldKey;
+          };
+          
           const ranked = strategies.map(strategy => {
             // Track boolean matches/non-matches
             const booleanMatches = [];
@@ -423,7 +434,12 @@
             
             // Calculate spectrum match score
             activeSpectrumQuestions.forEach(question => {
-              const strategyValue = strategy.scores[question] || 0;
+              // Find the correct key in the strategy scores
+              const oldKey = Object.keys(strategy.scores).find(key => 
+                mapQuestionKey(key) === question
+              ) || question;
+              
+              const strategyValue = strategy.scores[oldKey] || 0;
               const preferenceValue = sliderValues[question];
               
               // Convert preference (-3 to 3) to expected score (0 to 10)
@@ -505,13 +521,77 @@
       });
 
       // Helper function to get the preference text label for sliders
-      const getPreferenceLabel = (value) => {
-        if (value === 0) return "No preference";
-        if (value > 0) {
-          return value < 2 ? "Slight preference" : value === 2 ? "Strongly preferred" : "Definitely preferred";
-        } else {
-          return value > -2 ? "Not preferred" : value === -2 ? "Strongly not preferred" : "Definitely not preferred";
+      const getPreferenceLabel = (value, question) => {
+        // Special label sets for different question types
+        const timeCommitmentLabels = {
+          '-3': 'Very low',
+          '-2': 'Low',
+          '-1': 'Somewhat low',
+          '0': 'No preference',
+          '1': 'Somewhat high',
+          '2': 'High',
+          '3': 'Very high'
+        };
+        
+        const investmentLabels = {
+          '-3': 'Very low',
+          '-2': 'Low', 
+          '-1': 'Somewhat low',
+          '0': 'No preference',
+          '1': 'Somewhat high',
+          '2': 'High',
+          '3': 'Very high'
+        };
+        
+        const agreementLabels = {
+          '-3': 'Strongly opposed',
+          '-2': 'Opposed',
+          '-1': 'Somewhat opposed',
+          '0': 'No preference',
+          '1': 'Somewhat open',
+          '2': 'Open',
+          '3': 'Strongly open'
+        };
+        
+        const thirdPartyLabels = {
+          '-3': 'Strongly opposed',
+          '-2': 'Opposed',
+          '-1': 'Somewhat opposed',
+          '0': 'No preference',
+          '1': 'Somewhat open',
+          '2': 'Open',
+          '3': 'Strongly open'
+        };
+        
+        // Select the appropriate label set based on the question
+        if (question === "Preferred time commitment to IP strategy") {
+          return timeCommitmentLabels[value];
+        } else if (question === "Preferred investment in IP strategy") {
+          return investmentLabels[value];
+        } else if (question === "Preferred interest in commercial agreements") {
+          return agreementLabels[value];
+        } else if (question === "Openness to engaging 3rd party services") {
+          return thirdPartyLabels[value];
         }
+        
+        // Default fallback (shouldn't be needed)
+        return value === 0 ? "No preference" : value > 0 ? "Preferred" : "Not preferred";
+      };
+      
+      // Helper function to get slider min/max/center labels
+      const getSliderLabels = (question) => {
+        if (question === "Preferred time commitment to IP strategy") {
+          return { min: "Low", center: "No preference", max: "High" };
+        } else if (question === "Preferred investment in IP strategy") {
+          return { min: "Low", center: "No preference", max: "High" };
+        } else if (question === "Preferred interest in commercial agreements") {
+          return { min: "Opposed", center: "No preference", max: "Open" };
+        } else if (question === "Openness to engaging 3rd party services") {
+          return { min: "Opposed", center: "No preference", max: "Open" };
+        }
+        
+        // Default fallback
+        return { min: "Not preferred", center: "No preference", max: "Preferred" };
       };
 
       return (
@@ -552,34 +632,38 @@
                 <h2 className="text-xl font-semibold mb-4 teal-text">Your preferences</h2>
                 
                 <div className="question-area">
-                  {spectrumQuestions.map((question, index) => (
-                    <div key={index} className="mb-6">
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="font-medium">{question}</label>
-                        <span className="text-sm px-2 py-1 rounded-full bg-gray-100">
-                          {getPreferenceLabel(sliderValues[question])}
-                        </span>
-                      </div>
-                      
-                      <div className="relative">
-                        <div className="w-full flex justify-between text-xs text-gray-500 mb-1">
-                          <span>Not preferred</span>
-                          <span>No preference</span>
-                          <span>Preferred</span>
+                  {spectrumQuestions.map((question, index) => {
+                    const sliderLabels = getSliderLabels(question);
+                    
+                    return (
+                      <div key={index} className="mb-6">
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="font-medium">{question}</label>
+                          <span className="text-sm px-2 py-1 rounded-full bg-gray-100">
+                            {getPreferenceLabel(sliderValues[question], question)}
+                          </span>
                         </div>
                         
-                        <input
-                          type="range"
-                          min="-3"
-                          max="3"
-                          step="1"
-                          value={sliderValues[question]}
-                          onChange={(e) => updateSliderValue(question, parseInt(e.target.value))}
-                          className="w-full"
-                        />
+                        <div className="relative">
+                          <div className="w-full flex justify-between text-xs text-gray-500 mb-1">
+                            <span>{sliderLabels.min}</span>
+                            <span>{sliderLabels.center}</span>
+                            <span>{sliderLabels.max}</span>
+                          </div>
+                          
+                          <input
+                            type="range"
+                            min="-3"
+                            max="3"
+                            step="1"
+                            value={sliderValues[question]}
+                            onChange={(e) => updateSliderValue(question, parseInt(e.target.value))}
+                            className="w-full"
+                          />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
